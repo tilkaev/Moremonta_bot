@@ -1,9 +1,5 @@
-from telebot import types
+
 import difflib
-
-
-
-
 
 
 def difflib_searcher(text, possible_values):

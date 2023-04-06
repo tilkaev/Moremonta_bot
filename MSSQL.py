@@ -1,3 +1,4 @@
+from telebot import types
 import pyodbc
 from config import PSWD_DB
 
@@ -45,4 +46,3 @@ class MSSQL:
 
     def disconnect(self):
         self.connection.close()
-    
