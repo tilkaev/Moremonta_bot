@@ -1,18 +1,14 @@
 from telebot import types
 import pyodbc
-from config import PSWD_DB
+from config import *
 
 class MSSQL:
     def __init__(self):
-        self.server =   'TIMUR-HOME\SQLEXPRESS'
-        self.database = 'Moremonta_bot'
-        self.username = 'user'
-        self.password = PSWD_DB
         self.connection = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};'
-                                         'SERVER=' + self.server + ';'
-                                         'DATABASE=' + self.database + ';'
-                                         'UID=' + self.username + ';'
-                                         'PWD=' + self.password + ';')
+                                         'SERVER=' + SERVER + ';'
+                                         'DATABASE=' + DATABASE + ';'
+                                         'UID=' + UID_DB + ';'
+                                         'PWD=' + PSWD_DB + ';')
 
     def execute(self, sql, params=None):
         cursor = self.connection.cursor()

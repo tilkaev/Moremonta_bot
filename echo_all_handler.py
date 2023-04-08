@@ -1,16 +1,20 @@
 from bot_data import *
+from authorization import login
 
 
 # ALL MESSAGE
-#@bot.message_handler(func=lambda message: True)
+# Эхо-обработчик для всех остальных сообщений
 def echo_all_handler(message):
 
-    query_profile = "select Ds.name from Brands Br, Devices Ds where Br.id = Ds.brand_id and Ds.name like ?"
+    if login(message) == False:
+       return
+
+    query_profile = "select Mprice.name, Mprice.price from Brands Br, MasterPrices Mprice where Br.id = Mprice.brand_id and Mprice.name like ?"
     params = f"%{str(message.text).replace(' ', '%')}%"
     result_devices = db.execute_query(query_profile, params)
 
     result_devices = [i[0] for i in result_devices]
-    print("#", result_devices)
+    print("#", message.text, result_devices)
 
     if len(result_devices) > 10:
         bot.reply_to(message, f"{message.text} - не могу найти телефон в базе!")
@@ -26,13 +30,13 @@ def echo_all_handler(message):
         callback_button = types.InlineKeyboardButton(text=f"ОТМЕНА", callback_data="[BACK]")
         keyboard.add(callback_button)
 
-        sent_message = bot.send_message(message.chat.id, "Выберите подоходящий телефон:", reply_markup=keyboard)
+        bot.send_message(message.chat.id, "Выберите подоходящий телефон:", reply_markup=keyboard)
                 
     elif len(result_devices) == 1:
-        bot.reply_to(message, "{0} - этот телефон есть в базе!".format(result_devices[0]))
+        bot.reply_to(message, f"{result_devices[0]} - этот телефон есть в базе!")
 
     else:
-        bot.reply_to(message, "{0} - такого телефона нету в базе!".format(message.text))
+        bot.reply_to(message, f"{message.text} - такого телефона нету в базе!")
         
 
         

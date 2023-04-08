@@ -14,7 +14,7 @@ def login(message):
         bot.send_message(message.chat.id, "Вы не зарегистрированный пользователь, пожалуйста пройдите регистрацию!", reply_markup=keyboard)
         #Создаем пользователя с этапом start
         
-        query = "insert into Users (type_id, telegram_id, is_registered, name) values (3, ?, 0,  'start')"
+        query = "insert into Users (user_type_id, telegram_id, is_registered, name) values (3, ?, 0,  'start')"
         params = (message.chat.id)
         db.execute(query, params)
 

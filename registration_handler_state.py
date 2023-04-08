@@ -2,10 +2,16 @@ from bot_data import *
 from show_profile_handler import show_profile_handler
 import re
 
-# REGISTRATION
-# State registration 
-#@bot.message_handler(func=lambda message: message.chat.id in user_context_state and user_context_state[message.chat.id] == StateBot.Registration)
+
 def registration_handler_state(message):
+    """
+    REGISTRATION
+
+    Enum State Bot: Registration = 2
+    
+    Обработчик сообщений в состоянии регистрации
+    """
+
     chat_id = message.chat.id
     user_context_state[message.chat.id] = StateBot.Registration
 
@@ -28,9 +34,9 @@ def registration_handler_state(message):
         else:
             user_context_registration[chat_id]['phone'] = message.text
             user_context_registration[chat_id]['step'] = 'street'
-            bot.send_message(chat_id, 'Укажите ваш адрес доставки')
-        
-
+            #bot.send_message(chat_id, 'Укажите ваш адрес для курьерской доставки')
+            bot.send_message(chat_id, 'Укажите адрес для курьерской доставки, где забрать и вернуть телефон после ремонта.\nЕго можно будет изменить при заказе') # , мы гарантируем безопасность и конфиденциальность
+    
     elif user_context_registration[chat_id]['step'] == 'street':
         if len(message.text) >= 100:
             bot.send_message(chat_id, 'Адрес не может быть длиннее 100 символов. Повторите!')
