@@ -3,14 +3,14 @@ from authorization import login
 
 
 # START HELP
-#@bot.message_handler(commands=['start', 'help'])
+# Enum State Bot: Start = 1
 def start_help_handler(message):
-    #user_id = message.chat.id
+    chat_id = message.chat.id
     bot.reply_to(message, "Привет, я бот Moremonta!")
 
-    user_context_state[message.chat.id] = StateBot.Start
-    if message.chat.id in user_context_registration:
-        del user_context_registration[message.chat.id]
+    user_context_state[chat_id] = StateBot.Start
+    if chat_id in user_context_registration:
+        del user_context_registration[chat_id]
 
     if login(message):
-       print("#Authorized")
+        print("#Authorized", chat_id)
