@@ -8,7 +8,6 @@ def registration_handler_state(message):
     REGISTRATION
 
     Enum State Bot: Registration = 2
-
     Обработчик сообщений в состоянии регистрации
     """
 
