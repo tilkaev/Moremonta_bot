@@ -1,8 +1,9 @@
 /myenv
 /__pycache__
 /ideas
+/.vscode
 config.py
 
 Moremonta_bot.code-workspace
 script.sql
-settings.json
+
