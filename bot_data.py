@@ -9,6 +9,26 @@ db = MSSQL()
 
 user_context_registration = {}
 user_context_state = {}
+user_context_confirm_delivery = {}
+
+
+
+class StateDelivery(enum.Enum):
+    """
+    Класс для определения под-состояния и диалога, в состоянии оформаления заказа.
+
+    Под-состояния бота:
+    - Сonfirmation: начальное состояние подтверждения данных.
+    - EditPhone: состояние изменения данных телефона.
+    - EditAddress: состояние изменения данных адреса доставки.
+    - Confirmed: состояние подтвержденых данных.
+    
+    """
+
+    Сonfirmation = 1
+    EditPhone = 2
+    EditAddress = 3
+    Confirmed = 4
 
 
 class StateBot(enum.Enum):
@@ -19,6 +39,7 @@ class StateBot(enum.Enum):
     - Start: начальное состояние бота.
     - Registration: состояние, в котором происходит регистрация пользователя.
     - Profile: состояние, в котором пользователь может просмотреть и изменить свой профиль.
+    ...
     - Admin: состояние администратора.
     """
 
@@ -26,14 +47,10 @@ class StateBot(enum.Enum):
     Registration = 2
     Profile = 3
     PhonePriceSearch = 4
-    SupportChat = 5
+    Delivery = 5
+    SupportChat = 6
 
     Admin = 9
 
 
-class State(enum.Enum):
-    Start = 1
-    Registration = 2
-    Profile = 3
 
-    Admin = 9

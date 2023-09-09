@@ -8,6 +8,7 @@ from callback_handler import callback_handler
 from echo_all_handler import echo_all_handler
 from find_phone_price_handler import find_phone_price_handler
 from support_chat_handler import support_chat_handler
+from delivery_handler import delivery_handler
 
 
 def check_user_state(message, state):
@@ -40,7 +41,13 @@ bot.message_handler(
     func=lambda message: check_user_state(message, StateBot.PhonePriceSearch)
 )(find_phone_price_handler)
 
-# Enum State Bot: SupportChat = 5
+# Enum State Bot: Delivery = 5
+# Обработчик сообщений
+bot.message_handler(
+    func=lambda message: check_user_state(message, StateBot.Delivery)
+)(delivery_handler)
+
+# Enum State Bot: SupportChat = 6
 # Обработчик сообщений
 bot.message_handler(
     func=lambda message: check_user_state(message, StateBot.SupportChat)

@@ -24,7 +24,9 @@ def registration_handler_state(message):
         bot.send_message(chat_id, "Для регистрации укажите ваше имя")
 
     elif user_context_registration[chat_id]["step"] == "name":
-        if len(message.text) >= 100:
+        if message.text == "Профиль не прошел регистрацию! Пройдите регистрацию повторно.":  # Костыль #
+            bot.send_message(chat_id, "Имя не может быть пустым. Повторите!")
+        elif len(message.text) >= 100:
             bot.send_message(chat_id, "Имя не может быть длинным. Повторите!")
         else:
             user_context_registration[chat_id]["name"] = message.text
@@ -36,18 +38,21 @@ def registration_handler_state(message):
     elif user_context_registration[chat_id]["step"] == "phone":
         phone_number = message.text.replace(" ", "")
         if re.match(r"^\+7\d{10}$", phone_number) == None:
-            bot.send_message(chat_id, "Ошибка. Укажите номер в формате\n+79999999999")
+            bot.send_message(
+                chat_id, "Ошибка. Укажите номер в формате\n+79999999999")
         else:
             user_context_registration[chat_id]["phone"] = message.text
             user_context_registration[chat_id]["step"] = "street"
             # bot.send_message(chat_id, 'Укажите ваш адрес для курьерской доставки')
             bot.send_message(
                 chat_id,
-                "Укажите адрес для курьерской доставки, где забрать и вернуть телефон после ремонта.\nЕго можно будет изменить при заказе",
+                "Укажите адрес для курьерской доставки, где мы заберем и вернем телефон после ремонта.\n(Адрес можно будет изменить при заказе)",
             )  # , мы гарантируем безопасность и конфиденциальность
 
     elif user_context_registration[chat_id]["step"] == "street":
-        if len(message.text) >= 100:
+        if message.text == "Профиль не прошел регистрацию! Пройдите регистрацию повторно.":  # Костыль #
+            bot.send_message(chat_id, "Адрес не может быть пустым. Повторите!")
+        elif len(message.text) >= 100:
             bot.send_message(
                 chat_id, "Адрес не может быть длиннее 100 символов. Повторите!"
             )
@@ -65,9 +70,15 @@ def registration_handler_state(message):
             db.execute(query, params)
 
             bot.send_message(chat_id, f"Спасибо за регистрацию")
-            show_profile_handler(message)
+            bot.send_message(
+                chat_id, "Вы можете просмотреть и изменить свой профиль введя команду /profile"
+            )
+
             del user_context_registration[chat_id]
-            user_context_state[message.chat.id] = StateBot.Profile
+            user_context_state[message.chat.id] = StateBot.PhonePriceSearch
+            bot.send_message(
+                chat_id, "Вы можете также узнать примерную стоимость ремонта своего телефона, просто написав мне его модель"
+            )
 
     # ent_message = bot.send_message(message.chat.id, "Выберите подоходящий телефон:", reply_markup=keyboard)
 

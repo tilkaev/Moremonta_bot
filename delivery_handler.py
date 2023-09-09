@@ -2,57 +2,76 @@ from bot_data import *
 from authorization import login
 from models import *
 import json
+from bot_data import user_context_confirm_delivery
+from data_operations import *
 
-
+user_context_order = {}
 
 def delivery_handler(message):
     chat_id = message.chat.id
 
-    device_id = None
     # На всякий случай если будут разногласия
     if chat_id not in user_context_confirm_delivery:
         bot.send_message(chat_id, "Выберите телефон для заказа доставки!")
         return
-    
+    else:
+        device_id = user_context_confirm_delivery[message.chat.id]["device_id"]
+
     # Сначала мы предоставляем данные по адресу доставки и номера телефона на проверку клиенту 
-    elif user_context_confirm_delivery[chat_id]== StateDelivery.Сonfirmation: 
-        query_profile = "select name, phone, street from Users where telegram_id = ?"
-        params = (message.chat.id)
-        result_profile = db.execute_query(query_profile, params)
+    if user_context_confirm_delivery[chat_id]["step"] == StateDelivery.Сonfirmation: 
+        user = get_user_by_telegram_id(chat_id)
 
         text = f"""Пожалуйста, подтвердите, что информация о доставке верна ✅: 
-        📍 Адрес: {result_profile[0][2]},
-        ☎️ Телефон: {result_profile[0][1]}. 
-        Если все верно, нажмите 'Все верно', если нет - уточните нужную информацию. 
+📱 {get_device_by_id(device_id).name}
+🛠 Переклей (замена стекла)
+💲 Цена: {get_price_by_device_id(device_id)[0].price}
+📍 Адрес: {user.street},
+☎️ Телефон: {user.phone}
+
+Если все верно, нажмите 'Вызвать курьера 🛴', если нет - уточните нужную информацию. 
         
-        Как только вы подтвердите информацию, мы обработаем ваш заказ и отправим вам сообщение с подтверждением ✅"""
+Как только вы подтвердите информацию, мы обработаем ваш заказ и отправим вам сообщение с подтверждением ✅"""
         
         
         callback_data_1 = json.dumps({"callback": "[DELIVERY]", "args": [chat_id, "arg1_value", "arg2_value"]})
-        keyboard = types.InlineKeyboardMarkup()
-        delivery_button = types.InlineKeyboardButton(text=f"Все верно, продолжить 🛴", callback_data=f"[DELIVERY][device_id]{device.id}")
-        callback_button = types.InlineKeyboardButton(text=f"Уточнить адрес", callback_data="[BACK]")
-        callback_button = types.InlineKeyboardButton(text=f"Уточнить телефон", callback_data="[BACK]")
-        callback_button = types.InlineKeyboardButton(text=f"ОТМЕНА", callback_data="[BACK]")
-        keyboard.add(delivery_button)
-        keyboard.add(callback_button)
-
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+        buttons = [
+            types.InlineKeyboardButton(text=f"Вызвать курьера 🛴", callback_data=f"[DELIVERY][Confirmed]"),
+            types.InlineKeyboardButton(text=f"Уточнить адрес 📍", callback_data="[EditAddress]"),
+            types.InlineKeyboardButton(text=f"Уточнить телефон ☎️", callback_data="[EditPhone]"),
+            types.InlineKeyboardButton(text=f"ОТМЕНА", callback_data="[BACK]")
+        ]
+        keyboard.add(*buttons)
 
         bot.send_message(message.chat.id, text, reply_markup=keyboard)
-        bot.send_message(chat_id, "        !")
+
 
     # 
-    elif user_context_confirm_delivery[chat_id]== StateDelivery.EditPhone: 
-        pass
+    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.EditPhone: 
+        query_profile = "select name, phone, street from Users where telegram_id = ?"
+        params = (message.chat.id)
+        result_profile = db.execute_query(query_profile, params)
+        query = """INSERT INTO Orders (
+            [user_id]
+           ,[master_prices_id]
+           ,[pickup_address]
+           ,[price]
+           ,[order_status_id]
+           ,[created_at]
+            values (?, ?, ?, ?, ?, ?)"""
+        price = get_price_by_device_id(user_context_confirm_delivery[message.chat.id]["device_id"])
+        params = (message.chat.id, price[0].id, chat_id)
+        db.execute(query, params)
+        
 
     # 
-    elif user_context_confirm_delivery[chat_id]== StateDelivery.EditAddress: 
+    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.EditAddress: 
         pass
 
 
 
     # Подтверждаем
-    elif user_context_confirm_delivery[chat_id]== StateDelivery.Confirmed: 
+    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.Confirmed: 
         pass
 
     return
