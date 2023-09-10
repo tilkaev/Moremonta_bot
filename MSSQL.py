@@ -20,6 +20,7 @@ class MSSQL:
         else:
             cursor.execute(sql)
         cursor.commit()
+        cursor.close()
 
     def execute_query(self, query, params=None):
         cursor = self.connection.cursor()
@@ -28,6 +29,7 @@ class MSSQL:
         else:
             cursor.execute(query)
         results = cursor.fetchall()
+        cursor.commit()
         cursor.close()
         return results
 

@@ -4,64 +4,105 @@ from models import *
 import json
 from bot_data import user_context_confirm_delivery
 from data_operations import *
+import time
 
 user_context_order = {}
 
 def delivery_handler(message):
     chat_id = message.chat.id
 
-    # На всякий случай если будут разногласия
+    # Если будут разногласие
     if chat_id not in user_context_confirm_delivery:
         bot.send_message(chat_id, "Выберите телефон для заказа доставки!")
         return
     else:
-        device_id = user_context_confirm_delivery[message.chat.id]["device_id"]
+        device_id = user_context_confirm_delivery[chat_id]["device_id"]
 
     # Сначала мы предоставляем данные по адресу доставки и номера телефона на проверку клиенту 
     if user_context_confirm_delivery[chat_id]["step"] == StateDelivery.Сonfirmation: 
         user = get_user_by_telegram_id(chat_id)
 
-        text = f"""Пожалуйста, подтвердите, что информация о доставке верна ✅: 
+        text = f"""Пожалуйста, подтвердите, что информация о доставке верна ✅:
+
 📱 {get_device_by_id(device_id).name}
 🛠 Переклей (замена стекла)
-💲 Цена: {get_price_by_device_id(device_id)[0].price}
-📍 Адрес: {user.street},
+💲 Цена: {get_price_by_device_id(device_id)[0].price}₽
+📍 Адрес: {user.street}
 ☎️ Телефон: {user.phone}
 
-Если все верно, нажмите 'Вызвать курьера 🛴', если нет - уточните нужную информацию. 
+Если все верно, нажмите 'Вызвать курьера 🛴✅', если нет - уточните нужную информацию. 
         
 Как только вы подтвердите информацию, мы обработаем ваш заказ и отправим вам сообщение с подтверждением ✅"""
+
+        user_context_order[chat_id] = {
+            "device_id": device_id,
+            "price_id": get_price_by_device_id(device_id)[0].id,
+            "price": get_price_by_device_id(device_id)[0].price,
+            "street": user.street,
+            "phone": user.phone
+        }
         
         
         callback_data_1 = json.dumps({"callback": "[DELIVERY]", "args": [chat_id, "arg1_value", "arg2_value"]})
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         buttons = [
-            types.InlineKeyboardButton(text=f"Вызвать курьера 🛴", callback_data=f"[DELIVERY][Confirmed]"),
+            types.InlineKeyboardButton(text=f"Вызвать курьера 🛴✅", callback_data=f"[DELIVERY][Confirmed]"),
             types.InlineKeyboardButton(text=f"Уточнить адрес 📍", callback_data="[EditAddress]"),
             types.InlineKeyboardButton(text=f"Уточнить телефон ☎️", callback_data="[EditPhone]"),
             types.InlineKeyboardButton(text=f"ОТМЕНА", callback_data="[BACK]")
         ]
         keyboard.add(*buttons)
 
-        bot.send_message(message.chat.id, text, reply_markup=keyboard)
+        bot.send_message(chat_id, text, reply_markup=keyboard)
 
 
-    # 
-    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.EditPhone: 
-        query_profile = "select name, phone, street from Users where telegram_id = ?"
-        params = (message.chat.id)
-        result_profile = db.execute_query(query_profile, params)
+    # Подтверждение
+    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.Confirmed: 
+        order = user_context_order[chat_id]
+        user = get_user_by_telegram_id(chat_id)
+
         query = """INSERT INTO Orders (
             [user_id]
            ,[master_prices_id]
            ,[pickup_address]
            ,[price]
            ,[order_status_id]
-           ,[created_at]
-            values (?, ?, ?, ?, ?, ?)"""
-        price = get_price_by_device_id(user_context_confirm_delivery[message.chat.id]["device_id"])
-        params = (message.chat.id, price[0].id, chat_id)
-        db.execute(query, params)
+           ,[created_at]) 
+		   OUTPUT Inserted.ID
+           VALUES (?, ?, ?, ?, ?, GETDATE())"""
+        
+        params = (get_user_by_telegram_id(chat_id).id, order["price_id"], order["street"], int(order["price"]), 1)
+        result = db.execute_query(query, params)
+        
+        text = f"""Заказ №{result[0][0]} успешно создан ✅
+Информация по заказу:
+
+📱 {get_device_by_id(device_id).name}
+🛠 Переклей (замена стекла)
+💲 Цена: {get_price_by_device_id(device_id)[0].price}₽
+📍 Адрес: {user.street}
+☎️ Телефон: {user.phone}
+
+В скором времени мы подтвердим ваш заказ и пришлем уведомление ✅"""
+
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+        buttons = [
+            types.InlineKeyboardButton(text=f"Позвоните мне ☎️", callback_data=f"[ORDER][CALL_ME]"),
+            types.InlineKeyboardButton(text=f"Отменить заказ", callback_data="[ORDER][REJECTION]"),
+            types.InlineKeyboardButton(text=f"Скрыть", callback_data="[BACK]")
+        ]
+        keyboard.add(*buttons)
+
+        user_context_confirm_delivery.pop(chat_id)
+        user_context_state[chat_id] = None
+
+        bot.edit_message_text(chat_id=chat_id, message_id=message.id, text=text, reply_markup=keyboard)
+
+
+
+    # 
+    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.EditPhone: 
+        pass
         
 
     # 
@@ -70,9 +111,6 @@ def delivery_handler(message):
 
 
 
-    # Подтверждаем
-    elif user_context_confirm_delivery[chat_id]["step"] == StateDelivery.Confirmed: 
-        pass
 
     return
 
@@ -131,7 +169,7 @@ def delivery_handler(message):
             )
 
             del user_context_registration[chat_id]
-            user_context_state[message.chat.id] = StateBot.PhonePriceSearch
+            user_context_state[chat_id] = StateBot.PhonePriceSearch
             bot.send_message(
                 chat_id, "Вы можете также узнать примерную стоимость ремонта своего телефона, просто написав мне его модель"
             )

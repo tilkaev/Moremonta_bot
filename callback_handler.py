@@ -2,6 +2,7 @@ from bot_data import *
 from registration_handler_state import registration_handler_state
 from find_phone_price_handler import *
 from delivery_handler import delivery_handler
+from call_me_handler import *
 
 # CALLBACK
 # @bot.callback_query_handler(func=lambda call: True)
@@ -37,6 +38,16 @@ def callback_handler(call):
         send_price_by_device_id(call.message, text)
 
 
+    elif text[:16] == "[ORDER][CALL_ME]":
+        text = text[16:]
+        user_context_state[chat_id] = None
+        call_me_handler(call.message)
+
+    elif text[:22] == "[CALL_ME][SEND_NUMBER]":
+        user_context_state[chat_id] = None
+        send_my_number(call.message)
+
+
     elif text[:21] == "[DELIVERY][device_id]":
         text = text[21:]
         user_context_state[chat_id] = StateBot.Delivery
@@ -45,10 +56,24 @@ def callback_handler(call):
             "step": StateDelivery.Сonfirmation,
         }
         delivery_handler(call.message)
-
         
+    elif text[:21] == "[DELIVERY][EditAddress]":
+        text = text[21:]
+        user_context_confirm_delivery[chat_id]["step"] = StateDelivery.EditAddress
+        delivery_handler(call.message)
+
+    elif text[:21] == "[DELIVERY][EditPhone]":
+        text = text[21:]
+        user_context_confirm_delivery[chat_id]["step"] = StateDelivery.EditPhone
+        delivery_handler(call.message)
+
     elif text[:21] == "[DELIVERY][Confirmed]":
         text = text[21:]
-        user_context_state[chat_id] = StateBot.Confirmed
+        if chat_id not in user_context_confirm_delivery:
+            user_context_state[chat_id] = StateBot.PhonePriceSearch
+            bot.edit_message_text(chat_id=chat_id, message_id=call.message.id, text="Повторите выбор устройства!")
+            return
+
+        user_context_confirm_delivery[chat_id]["step"] = StateDelivery.Confirmed
         delivery_handler(call.message)
 

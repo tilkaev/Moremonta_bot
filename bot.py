@@ -9,7 +9,8 @@ from echo_all_handler import echo_all_handler
 from find_phone_price_handler import find_phone_price_handler
 from support_chat_handler import support_chat_handler
 from delivery_handler import delivery_handler
-
+from orders_handler import orders_handler
+from rabbitmq_consumer import *
 
 def check_user_state(message, state):
     return (
@@ -18,36 +19,46 @@ def check_user_state(message, state):
     )
 
 
-# Enum State Bot: Start = 1
+# Enum State Bot: Start
 # Обработчик команд /start и /help
 bot.message_handler(commands=["start", "help"]
 )(start_help_handler)
 
 
-# Enum State Bot: Registration = 2
+# Enum State Bot: Profile
+# Обработчик команды /profile
+bot.message_handler(commands=["profile"]
+)(show_profile_handler)
+
+
+# Enum State Bot: Registration
 # Обработчик сообщений в состоянии регистрации
 bot.message_handler(
     func=lambda message: check_user_state(message, StateBot.Registration)
 )(registration_handler_state)
 
-# Enum State Bot: Profile = 3
-# Обработчик команды /profile
-bot.message_handler(commands=["profile"]
-)(show_profile_handler)
 
-# Enum State Bot: PhonePriceSearch = 4
+# Enum State Bot: PhonePriceSearch
 # Обработчик сообщений
 bot.message_handler(
     func=lambda message: check_user_state(message, StateBot.PhonePriceSearch)
 )(find_phone_price_handler)
 
-# Enum State Bot: Delivery = 5
+
+# Enum State Bot: Delivery
 # Обработчик сообщений
 bot.message_handler(
     func=lambda message: check_user_state(message, StateBot.Delivery)
 )(delivery_handler)
 
-# Enum State Bot: SupportChat = 6
+
+# Enum State Bot: My_Orders
+# Обработчик сообщений
+bot.message_handler(commands=["orders"]
+)(orders_handler)
+
+
+# Enum State Bot: SupportChat
 # Обработчик сообщений
 bot.message_handler(
     func=lambda message: check_user_state(message, StateBot.SupportChat)
@@ -57,6 +68,7 @@ bot.message_handler(
 # Обработчик callback-запросов (для других целей)
 bot.callback_query_handler(func=lambda call: True
 )(callback_handler)
+
 
 # Эхо-обработчик для всех остальных сообщений
 bot.message_handler(func=lambda message: True

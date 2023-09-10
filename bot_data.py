@@ -11,8 +11,6 @@ user_context_registration = {}
 user_context_state = {}
 user_context_confirm_delivery = {}
 
-
-
 class StateDelivery(enum.Enum):
     """
     Класс для определения под-состояния и диалога, в состоянии оформаления заказа.
@@ -48,7 +46,8 @@ class StateBot(enum.Enum):
     Profile = 3
     PhonePriceSearch = 4
     Delivery = 5
-    SupportChat = 6
+    My_Orders = 6
+    SupportChat = 7
 
     Admin = 9
 

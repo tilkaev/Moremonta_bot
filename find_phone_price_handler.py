@@ -39,7 +39,7 @@ def send_price_by_device_id(message, device_id):
     keyboard.add(delivery_button)
     keyboard.add(callback_button)
 
-    bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=f"⚒️ {device.name} ⚒️\n{text_out}", reply_markup=keyboard) 
+    bot.edit_message_text(chat_id=message.chat.id, message_id=message.id, text=f"⚒️ {device.name} ⚒️\n{text_out}", reply_markup=keyboard) 
     """
     result = f"⚒️ {result_devices_converted[0]} ⚒️\n\n✅ Замена стекла (с гарантией): {result_devices[0][1]}\n✅ Разборка/сборка устройства: 700"
     bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text=result, reply_markup=keyboard)"""
