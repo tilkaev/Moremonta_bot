@@ -1,6 +1,6 @@
 from telebot import types
 from bot_data import bot
-
+from config import PHONE, USERNAME
 
 def call_me_handler(message):
     chat_id = message.chat.id
@@ -25,7 +25,7 @@ def send_my_number(message):
     ]
     keyboard.add(*buttons)
 
-    text = "☎️ +7-953-110-93-30 - Клим"
+    text = "☎️ {PHONE} - {USERNAME}"
 
     bot.edit_message_text(chat_id=chat_id, message_id=message.id, text=text, reply_markup=keyboard)
 
