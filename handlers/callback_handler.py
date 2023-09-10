@@ -1,8 +1,8 @@
 from bot_data import *
 from registration_handler_state import registration_handler_state
-from find_phone_price_handler import *
-from delivery_handler import delivery_handler
-from call_me_handler import *
+from handlers.find_phone_price_handler import *
+from handlers.delivery_handler import delivery_handler
+from handlers.call_me_handler import *
 
 # CALLBACK
 # @bot.callback_query_handler(func=lambda call: True)

@@ -1,6 +1,6 @@
 from bot_data import *
 from authorization import login
-from find_phone_price_handler import find_phone_price_handler
+from handlers.find_phone_price_handler import find_phone_price_handler
 
 # ALL MESSAGE
 # Эхо-обработчик для всех остальных сообщений

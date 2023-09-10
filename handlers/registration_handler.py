@@ -1,5 +1,5 @@
 from bot_data import *
-from show_profile_handler import show_profile_handler
+from handlers.show_profile_handler import show_profile_handler
 import re
 
 

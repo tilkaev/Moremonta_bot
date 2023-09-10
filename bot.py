@@ -2,13 +2,13 @@ from utils import *
 from bot_data import *
 
 from start_help_handler import start_help_handler
-from show_profile_handler import show_profile_handler
+from handlers.show_profile_handler import show_profile_handler
 from registration_handler_state import registration_handler_state
-from callback_handler import callback_handler
+from handlers.callback_handler import callback_handler
 from echo_all_handler import echo_all_handler
-from find_phone_price_handler import find_phone_price_handler
+from handlers.find_phone_price_handler import find_phone_price_handler
 from support_chat_handler import support_chat_handler
-from delivery_handler import delivery_handler
+from handlers.delivery_handler import delivery_handler
 from orders_handler import orders_handler
 from rabbitmq_consumer import *
 
